@@ -95,10 +95,10 @@ class Swiper{
             if(clock)clearInterval(clock)
             clock=setTimeout(()=>{
                 newX= e.changedTouches[0].pageX
-                if(newX-initX>10){
-                    eventHub['swipeRight'].forEach(fn=>fn.bind(root))
+                if(newX-initX>50){
+                    eventHub['swipeRight'].forEach(fn=>fn.bind(root)())
                 }else{
-                    eventHub['swipeLeft'].forEach(fn=>fn.bind(root))
+                    eventHub['swipeLeft'].forEach(fn=>fn.bind(root)())
                 }
             },100)
         }
@@ -109,7 +109,7 @@ class Swiper{
         }
         this.off = function(type,fn){
             let index = eventHub[type].indexOf(fn)
-            if(!indx == -1){
+            if(!index == -1){
                 eventHub[type].splice(index,1)
             }
         }

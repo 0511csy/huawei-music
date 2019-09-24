@@ -1,18 +1,18 @@
 import './icons.js'
 import Swiper from './swiper.js'
 
-const $ = selector =>document.querySelector(selector)
 
-const $$ = selector=>document.querySelectorAll(selector)
 
 
 
 class Player{
     constructor(node) {
-    this.root = typeof node === 'string' ? $(node) : node
+    this.root = typeof node === 'string' ? document.querySelector(node) : node
     this.songList = []
     this.currentIndex = 0
     this.audio = new Audio()
+    this.$=selector =>this.root.querySelector(selector)
+    this.$$=selector=>this.root.querySelectorAll(selector)
     this.start()
     this.bind()
     //https://jirengu.github.io/data-mock/huawei-music/music-list.json
@@ -31,7 +31,7 @@ class Player{
     }
     bind(){
         let self =this
-        this.root.querySelector('.btn-play-pause').onclick = function() {
+        this.$('.btn-play-pause').onclick = function() {
             
             // if(this.classList.contains('pause')) {
             //     self.audio.play()
@@ -56,20 +56,23 @@ class Player{
                 this.querySelector('use').setAttribute('xlink:href','#icon-pause')
             }
         }
-        this.root.querySelector('.btn-pre').onclick= function(){
+        this.$('.btn-pre').onclick= function(){
             self.playPrevSong()
         }
-        this.root.querySelector('.btn-next').onclick= function(){
+        this.$('.btn-next').onclick= function(){
             self.playNextSong()
         }
-        let swiper = new Swiper(this.root.querySelector('.panels'))
+        let swiper = new Swiper(this.$('.panels'))
         swiper.on('swipeLeft', function () {
+            
             this.classList.remove("panel1")
             this.classList.add("panel2")
+            console.log('left')
         })
         swiper.on('swipeRight', function () {
             this.classList.remove("panel2")
             this.classList.add("panel1")
+            console.log('right')
         })
     }
     playPrevSong() {
