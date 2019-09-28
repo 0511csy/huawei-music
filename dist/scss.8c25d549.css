@@ -102,8 +102,21 @@
 }
 #player .panels .panel-lyrics {
   width: 100vw;
-  height: 100%;
-  background: red;
+  height: calc(100% - 40px);
+  text-align: center;
+  overflow: hidden;
+}
+#player .panels .panel-lyrics .container {
+  transition: all 0.4s;
+}
+#player .panels .panel-lyrics .container p {
+  color: #868aaf;
+  line-height: 2;
+  font-style: 14px;
+}
+#player .panels .panel-lyrics .container p.current {
+  color: #fff;
+  font-style: 16px;
 }
 #player .footer {
   height: 160px;

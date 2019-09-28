@@ -299,7 +299,9 @@ function () {
     };
 
     this.start();
-    this.bind(); //https://jirengu.github.io/data-mock/huawei-music/music-list.json
+    this.bind();
+    this.lyricsArr = [];
+    this.lyricIndex = -1; //https://jirengu.github.io/data-mock/huawei-music/music-list.json
   }
 
   _createClass(Player, [{
@@ -312,7 +314,8 @@ function () {
       }).then(function (data) {
         console.log(data);
         _this2.songList = data;
-        _this2.audio.src = _this2.songList[_this2.currentIndex].url;
+
+        _this2.loadSong();
       });
     }
   }, {
@@ -321,17 +324,6 @@ function () {
       var self = this;
 
       this.$('.btn-play-pause').onclick = function () {
-        // if(this.classList.contains('pause')) {
-        //     self.audio.play()
-        //     this.classList.remove('pause')
-        //     this.classList.add('playing')
-        //     this.querySelector('use').setAttribut('xlink-href','#icon-play')
-        // }else if(this.classList.contains('playing')){
-        //     self.audio.pause()
-        //     this.classList.remove('playing')
-        //     this.classList.add('pause')
-        //     this.querySelector('use').setAttribut('xlink-href','#icon-pause')
-        // }
         if (this.classList.contains('playing')) {
           self.audio.pause();
           this.classList.remove('playing');
@@ -351,6 +343,11 @@ function () {
 
       this.$('.btn-next').onclick = function () {
         self.playNextSong();
+      };
+
+      this.audio.ontimeupdate = function () {
+        self.locateLyric();
+        self.setProgressBar();
       };
 
       var swiper = new _swiper.default(this.$('.panels'));
@@ -376,6 +373,8 @@ function () {
       this.audio.oncanplaythrough = function () {
         return _this3.audio.play();
       };
+
+      this.loadSong();
     }
   }, {
     key: "playNextSong",
@@ -388,6 +387,127 @@ function () {
       this.audio.oncanplaythrough = function () {
         return _this4.audio.play();
       };
+
+      this.loadSong();
+    }
+  }, {
+    key: "loadSong",
+    value: function loadSong() {
+      var _this5 = this;
+
+      var songObj = this.songList[this.currentIndex];
+      this.$('.header h1').innerText = songObj.title;
+      this.$('.header p').innerText = songObj.author + '-' + songObj.albumn;
+      this.audio.src = songObj.url;
+
+      this.audio.onloadedmetadata = function () {
+        return _this5.$('.time-end').innerText = _this5.formateTime(_this5.audio.duration);
+      };
+
+      this.loadLyric();
+    }
+  }, {
+    key: "playSong",
+    value: function playSong() {
+      var _this6 = this;
+
+      this.audio.oncanplaythrough = function () {
+        return _this6.audio.play();
+      };
+    }
+  }, {
+    key: "loadLyric",
+    value: function loadLyric() {
+      var _this7 = this;
+
+      fetch(this.songList[this.currentIndex].lyric).then(function (res) {
+        return res.json();
+      }).then(function (data) {
+        (function (data) {
+          return data.lrc.lyric;
+        });
+
+        console.log(data.lrc.lyric);
+
+        _this7.setLyrics(data.lrc.lyric);
+
+        window.lyrics = data.lrc.lyrc;
+      });
+    }
+  }, {
+    key: "locateLyric",
+    value: function locateLyric() {
+      var currentTime = this.audio.currentTime * 1000;
+      var nextTime = this.lyricsArr[this.lyricIndex + 1][0];
+
+      if (currentTime > nextTime && this.lyricIndex < this.lyricsArr.length - 1) {
+        this.lyricIndex++;
+        var node = this.$('[data-time="' + this.lyricsArr[this.lyricIndex][0] + '"]');
+        if (node) this.setLyricsToCenter(node);
+        this.$$('.panel-effect .lyric p')[0].innerText = this.lyricsArr[this.lyricIndex][1];
+        this.$$('.panel-effect .lyric p')[1].innerText = this.lyricsArr[this.lyricIndex + 1] ? this.lyricsArr[this.lyricIndex + 1] : '';
+      }
+    }
+  }, {
+    key: "setLyrics",
+    value: function setLyrics(lyrics) {
+      this.lyricIndex = 0;
+      var fragment = document.createDocumentFragment();
+      var lyricsArr = [];
+      this.lyricsArr = lyricsArr;
+      lyrics.split(/\n/).filter(function (str) {
+        return str.match(/\[.+?\]/g, '');
+      }).forEach(function (line) {
+        var str = line.replace(/\[.+?\]/g, '');
+        line.match(/\[.+?\]/g, '').forEach(function (t) {
+          t = t.replace(/[\[\]]/g, '');
+          var milliseconds = parseInt(t.slice(0, 2)) * 60 * 1000 + parseInt(t.slice(3, 5)) * 1000 + parseInt(t.slice(6));
+          lyricsArr.push([milliseconds, str]);
+        });
+      });
+      lyricsArr.filter(function (line) {
+        return line[1].trim() !== '';
+      }).sort(function (v1, v2) {
+        if (v1[0] > v2[0]) {
+          return 1;
+        } else {
+          return -1;
+        }
+      }).forEach(function (line) {
+        var node = document.createElement('p');
+        node.setAttribute('data-time', line[0]);
+        node.innerText = line[1];
+        fragment.appendChild(node);
+      });
+      this.$('.panel-lyrics .container').innerHTML = '';
+      this.$('.panel-lyrics .container').appendChild(fragment);
+    }
+  }, {
+    key: "setLyricsToCenter",
+    value: function setLyricsToCenter(node) {
+      var translateY = node.offsetTop - this.$('.panel-lyrics').offsetHeight / 2;
+      translateY > 0 ? translateY : 0;
+      this.$('.panel-lyrics .container').style.transform = "translateY(-".concat(translateY, "px)");
+      this.$$('.panel-lyrics p').forEach(function (node) {
+        return node.classList.remove('current');
+      });
+      node.classList.add('current');
+    }
+  }, {
+    key: "setProgressBar",
+    value: function setProgressBar() {
+      var percent = this.audio.currentTime * 100 / this.audio.duration + '%';
+      this.$('.bar .progress').style.width = percent;
+      this.$('.time-start').innerText = this.formateTime(this.audio.currentTime);
+    }
+  }, {
+    key: "formateTime",
+    value: function formateTime(secondesTatal) {
+      var minutes = parseInt(secondesTatal / 60);
+      minutes = minutes >= 10 ? '' + minutes : '0' + minutes;
+      var seconds = parseInt(secondesTatal % 60);
+      seconds = seconds >= 10 ? '' + seconds : '0' + seconds;
+      return minutes + ':' + seconds;
     }
   }]);
 
@@ -423,7 +543,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49346" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50622" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
