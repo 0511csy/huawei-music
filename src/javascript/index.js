@@ -49,40 +49,47 @@ class Player{
             }
         }
         this.$('.btn-pre').onclick= function(){
-            self.playPrevSong()
+            self.currentIndex = (self.songList.length+self.currentIndex-1) % self.songList.length
+            // self.audio.src=this.songList[this.currentIndex].url
+            self.playSong()
+            self.loadSong()
         }
         this.$('.btn-next').onclick= function(){
-            self.playNextSong()
+            self.currentIndex = (self.songList.length+self.currentIndex+1) % self.songList.length
+            // this.audio.src=this.songList[this.currentIndex].url
+            self.playSong()
+            self.loadSong()
         }
         this.audio.ontimeupdate = function(){
             self.locateLyric()
             self.setProgressBar()
+        }
+        this.$('.bar').onclick = function(e){
+            let bar = self.$('.bar')
+            let move = e.clientX - bar.offsetLeft
+            let percent = move/bar.offsetWidth
+            console.log(percent)
+            // self.audio.currentTime = self.audio.duration * percent
         }
         let swiper = new Swiper(this.$('.panels'))
         swiper.on('swipeLeft', function () {
             
             this.classList.remove("panel1")
             this.classList.add("panel2")
+            self.$('.balls span').classList.remove('current')
+            self.$('.balls span:last-child').classList.add('current')
             console.log('left')
         })
         swiper.on('swipeRight', function () {
             this.classList.remove("panel2")
             this.classList.add("panel1")
+            self.$('.balls span:last-child').classList.remove('current')
+            self.$('.balls span:first-child').classList.add('current')
             console.log('right')
         })
     }
-    playPrevSong() {
-        this.currentIndex = (this.songList.length+this.currentIndex-1) % this.songList.length
-        this.audio.src=this.songList[this.currentIndex].url
-        this.audio.oncanplaythrough=()=>this.audio.play()
-        this.loadSong()
-        }
-    playNextSong() {
-        this.currentIndex = (this.songList.length+this.currentIndex+1) % this.songList.length
-        this.audio.src=this.songList[this.currentIndex].url
-        this.audio.oncanplaythrough=()=>this.audio.play()
-        this.loadSong()
-    }
+  
+  
     loadSong(){
         let songObj = this.songList[this.currentIndex]
         this.$('.header h1').innerText = songObj.title
@@ -93,6 +100,7 @@ class Player{
     }
     playSong(){
         this.audio.oncanplaythrough = ()=> this.audio.play()
+        this.audio.loop = true
     }
     loadLyric(){
         fetch(this.songList[this.currentIndex].lyric)
@@ -112,7 +120,7 @@ class Player{
             let node = this.$('[data-time="'+this.lyricsArr[this.lyricIndex][0]+'"]')
             if(node) this.setLyricsToCenter(node)
             this.$$('.panel-effect .lyric p')[0].innerText = this.lyricsArr[this.lyricIndex][1]
-            this.$$('.panel-effect .lyric p')[1].innerText = this.lyricsArr[this.lyricIndex+1]?this.lyricsArr[this.lyricIndex+1]:''
+            this.$$('.panel-effect .lyric p')[1].innerText = this.lyricsArr[this.lyricIndex+1]?this.lyricsArr[this.lyricIndex+1][1]:''
         }
     }
     setLyrics(lyrics){

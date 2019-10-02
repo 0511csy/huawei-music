@@ -338,11 +338,17 @@ function () {
       };
 
       this.$('.btn-pre').onclick = function () {
-        self.playPrevSong();
+        self.currentIndex = (self.songList.length + self.currentIndex - 1) % self.songList.length; // self.audio.src=this.songList[this.currentIndex].url
+
+        self.playSong();
+        self.loadSong();
       };
 
       this.$('.btn-next').onclick = function () {
-        self.playNextSong();
+        self.currentIndex = (self.songList.length + self.currentIndex + 1) % self.songList.length; // this.audio.src=this.songList[this.currentIndex].url
+
+        self.playSong();
+        self.loadSong();
       };
 
       this.audio.ontimeupdate = function () {
@@ -350,50 +356,33 @@ function () {
         self.setProgressBar();
       };
 
+      this.$('.bar').onclick = function (e) {
+        var bar = self.$('.bar');
+        var move = e.clientX - bar.offsetLeft;
+        var percent = move / bar.offsetWidth;
+        console.log(percent); // self.audio.currentTime = self.audio.duration * percent
+      };
+
       var swiper = new _swiper.default(this.$('.panels'));
       swiper.on('swipeLeft', function () {
         this.classList.remove("panel1");
         this.classList.add("panel2");
+        self.$('.balls span').classList.remove('current');
+        self.$('.balls span:last-child').classList.add('current');
         console.log('left');
       });
       swiper.on('swipeRight', function () {
         this.classList.remove("panel2");
         this.classList.add("panel1");
+        self.$('.balls span:last-child').classList.remove('current');
+        self.$('.balls span:first-child').classList.add('current');
         console.log('right');
       });
     }
   }, {
-    key: "playPrevSong",
-    value: function playPrevSong() {
-      var _this3 = this;
-
-      this.currentIndex = (this.songList.length + this.currentIndex - 1) % this.songList.length;
-      this.audio.src = this.songList[this.currentIndex].url;
-
-      this.audio.oncanplaythrough = function () {
-        return _this3.audio.play();
-      };
-
-      this.loadSong();
-    }
-  }, {
-    key: "playNextSong",
-    value: function playNextSong() {
-      var _this4 = this;
-
-      this.currentIndex = (this.songList.length + this.currentIndex + 1) % this.songList.length;
-      this.audio.src = this.songList[this.currentIndex].url;
-
-      this.audio.oncanplaythrough = function () {
-        return _this4.audio.play();
-      };
-
-      this.loadSong();
-    }
-  }, {
     key: "loadSong",
     value: function loadSong() {
-      var _this5 = this;
+      var _this3 = this;
 
       var songObj = this.songList[this.currentIndex];
       this.$('.header h1').innerText = songObj.title;
@@ -401,7 +390,7 @@ function () {
       this.audio.src = songObj.url;
 
       this.audio.onloadedmetadata = function () {
-        return _this5.$('.time-end').innerText = _this5.formateTime(_this5.audio.duration);
+        return _this3.$('.time-end').innerText = _this3.formateTime(_this3.audio.duration);
       };
 
       this.loadLyric();
@@ -409,16 +398,18 @@ function () {
   }, {
     key: "playSong",
     value: function playSong() {
-      var _this6 = this;
+      var _this4 = this;
 
       this.audio.oncanplaythrough = function () {
-        return _this6.audio.play();
+        return _this4.audio.play();
       };
+
+      this.audio.loop = true;
     }
   }, {
     key: "loadLyric",
     value: function loadLyric() {
-      var _this7 = this;
+      var _this5 = this;
 
       fetch(this.songList[this.currentIndex].lyric).then(function (res) {
         return res.json();
@@ -429,7 +420,7 @@ function () {
 
         console.log(data.lrc.lyric);
 
-        _this7.setLyrics(data.lrc.lyric);
+        _this5.setLyrics(data.lrc.lyric);
 
         window.lyrics = data.lrc.lyrc;
       });
@@ -445,7 +436,7 @@ function () {
         var node = this.$('[data-time="' + this.lyricsArr[this.lyricIndex][0] + '"]');
         if (node) this.setLyricsToCenter(node);
         this.$$('.panel-effect .lyric p')[0].innerText = this.lyricsArr[this.lyricIndex][1];
-        this.$$('.panel-effect .lyric p')[1].innerText = this.lyricsArr[this.lyricIndex + 1] ? this.lyricsArr[this.lyricIndex + 1] : '';
+        this.$$('.panel-effect .lyric p')[1].innerText = this.lyricsArr[this.lyricIndex + 1] ? this.lyricsArr[this.lyricIndex + 1][1] : '';
       }
     }
   }, {
@@ -543,7 +534,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "50622" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53169" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
