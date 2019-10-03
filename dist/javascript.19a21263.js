@@ -435,9 +435,19 @@ function () {
         this.lyricIndex++;
         var node = this.$('[data-time="' + this.lyricsArr[this.lyricIndex][0] + '"]');
         if (node) this.setLyricsToCenter(node);
-        this.$$('.panel-effect .lyric p')[0].innerText = this.lyricsArr[this.lyricIndex][1];
+        this.$$('.panel-effect .lyric p')[0].innerText = this.lyricsArr[this.lyricIndex] ? this.lyricsArr[this.lyricIndex][1] : '';
         this.$$('.panel-effect .lyric p')[1].innerText = this.lyricsArr[this.lyricIndex + 1] ? this.lyricsArr[this.lyricIndex + 1][1] : '';
+      } else if (this.lyricIndex > this.lyricsArr.length - 1) {
+        this.onPlayEnd();
       }
+    }
+  }, {
+    key: "onPlayEnd",
+    value: function onPlayEnd() {
+      this.currentIndex = (this.songList.length + this.currentIndex + 1) % this.songList.length;
+      this.audio.src = this.songList[this.currentIndex].url;
+      this.playSong();
+      this.loadSong();
     }
   }, {
     key: "setLyrics",
@@ -534,7 +544,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53169" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49669" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

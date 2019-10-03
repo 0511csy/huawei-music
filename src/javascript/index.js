@@ -119,9 +119,17 @@ class Player{
             this.lyricIndex++
             let node = this.$('[data-time="'+this.lyricsArr[this.lyricIndex][0]+'"]')
             if(node) this.setLyricsToCenter(node)
-            this.$$('.panel-effect .lyric p')[0].innerText = this.lyricsArr[this.lyricIndex][1]
+            this.$$('.panel-effect .lyric p')[0].innerText = this.lyricsArr[this.lyricIndex]?this.lyricsArr[this.lyricIndex][1]:''
             this.$$('.panel-effect .lyric p')[1].innerText = this.lyricsArr[this.lyricIndex+1]?this.lyricsArr[this.lyricIndex+1][1]:''
+        }else if(this.lyricIndex >this.lyricsArr.length-1){
+            this.onPlayEnd()
         }
+    }
+    onPlayEnd(){
+        this.currentIndex = (this.songList.length+this.currentIndex+1) % this.songList.length
+        this.audio.src=this.songList[this.currentIndex].url
+        this.playSong()
+        this.loadSong()
     }
     setLyrics(lyrics){
         this.lyricIndex = 0
@@ -165,6 +173,7 @@ class Player{
         this.$('.bar .progress').style.width = percent
         this.$('.time-start').innerText = this.formateTime(this.audio.currentTime)
     }
+
     formateTime(secondesTatal){
         let minutes = parseInt(secondesTatal/60)
         minutes = minutes >= 10?''+minutes:'0'+minutes
