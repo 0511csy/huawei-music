@@ -137,7 +137,7 @@ class Player{
         let lyricsArr = []
         this.lyricsArr = lyricsArr
         lyrics.split(/\n/)
-        .filter(str=>str.match(/\[.+?\]/g,''))
+        .filter(str=>str.match(/\[.+?\]\S+/g,''))
         .forEach(line=>{
             let str = line.replace(/\[.+?\]/g,'')
             line.match(/\[.+?\]/g,'').forEach(t=>{
